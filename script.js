@@ -55,6 +55,7 @@ document.getElementById("scoreButton").addEventListener("click", async (event) =
 
         // Display the predicted class index and category
         classificationDiv.innerHTML = `
+            <h2>Similarity Score: ${data.similarity_score}</h2>
             <p><strong>Predicted Class Index:</strong> ${data.index}</p>
             <p><strong>Job Category:</strong> ${data.category}</p>
         `;

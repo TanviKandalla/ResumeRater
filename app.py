@@ -4,26 +4,33 @@ from transformers import BertTokenizer, BertForSequenceClassification
 from run import load_models, process_resume, find_similar_resumes
 import pdfplumber
 import torch
+import numpy as np
+import pickle
+import math
 
 app = FastAPI()
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Allow all origins; restrict this for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load BERT model and tokenizer
+# Load BERT model and tokenizer for job categorization
 model_path = "bert_resume_model"
 tokenizer = BertTokenizer.from_pretrained(model_path)
 bert_model = BertForSequenceClassification.from_pretrained(model_path)
 bert_model.eval()
 
-# Load similarity models
+# Load similarity models for clustering and embeddings
 kmeans, cluster_results, cnn_model = load_models()
+
+# Load pre-computed cluster radius for similarity scoring
+with open("centroid_distances.pkl", "rb") as f:
+    cluster_radius = pickle.load(f)
 
 # Define job categories
 CATEGORIES = [
@@ -38,6 +45,7 @@ CATEGORIES = [
     "React Developer"
 ]
 
+# Helper function to extract text from PDF
 def extract_text_from_pdf(pdf_file):
     text = ""
     with pdfplumber.open(pdf_file) as pdf:
@@ -47,27 +55,53 @@ def extract_text_from_pdf(pdf_file):
 
 @app.post("/classify/")
 async def classify_resume(file: UploadFile = File(...)):
+    # Check if the file is a valid format
     if file.content_type not in ["application/pdf", "image/jpeg", "image/png"]:
         return {"error": "Invalid file format. Only PDFs or images are accepted."}
 
-    # Extract text for categorization
-    pdf_text = extract_text_from_pdf(file.file)
-    if not pdf_text:
-        return {"error": "Failed to extract text from the uploaded PDF."}
+    try:
+        # Extract text for job categorization
+        pdf_text = extract_text_from_pdf(file.file)
+        if not pdf_text:
+            return {"error": "Failed to extract text from the uploaded PDF."}
 
-    inputs = tokenizer(pdf_text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-    with torch.no_grad():
-        outputs = bert_model(**inputs)
-        predicted_class = torch.argmax(outputs.logits, dim=1).item()
+        # Tokenize and predict job category using BERT
+        inputs = tokenizer(pdf_text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+        with torch.no_grad():
+            outputs = bert_model(**inputs)
+            predicted_class = torch.argmax(outputs.logits, dim=1).item()
 
-    if predicted_class >= len(CATEGORIES):
-        return {"error": f"Predicted class {predicted_class} is out of range."}
-    category = CATEGORIES[predicted_class]
+        # Validate predicted class
+        if predicted_class >= len(CATEGORIES):
+            return {"error": f"Predicted class {predicted_class} is out of range."}
+        category = CATEGORIES[predicted_class]
 
-    # Reset file pointer and process the file for similarity
-    file.file.seek(0)
-    embedding = process_resume(file.file, cnn_model)
-    similar_resumes = find_similar_resumes(embedding, kmeans, cluster_results)
+        # Reset file pointer for similarity calculation
+        file.file.seek(0)
 
-    return {"index": predicted_class, "category": category, "similar_resumes": similar_resumes}
+        # Process the file for similarity using CNN and KMeans
+        embedding = process_resume(file.file, cnn_model)
 
+        # Predict the cluster
+        predicted_cluster = kmeans.predict(embedding.unsqueeze(0).numpy())[0]
+
+        # Compute similarity score
+        predicted_centroid = kmeans.cluster_centers_[predicted_cluster]
+        distance = np.linalg.norm(embedding.unsqueeze(0).numpy() - predicted_centroid, axis=1)
+        similarity_score = math.ceil((1 - (distance / cluster_radius[predicted_cluster])[0]) * 100) / 10
+
+        # Find similar resumes
+        similar_resumes = cluster_results[cluster_results["Cluster"] == predicted_cluster]["File Name"].sample(
+            n=10
+        ).values.tolist()
+
+        # Return results
+        return {
+            "index": predicted_class,
+            "category": category,
+            "similar_resumes": similar_resumes,
+            "similarity_score": similarity_score,
+        }
+
+    except Exception as e:
+        return {"error": f"An unexpected error occurred: {str(e)}"}
