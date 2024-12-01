@@ -1,11 +1,11 @@
-['C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\Food_Beverages resumes\\Image_99.jpg'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Accountant\\181_1.png'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Advocate\\156_1.png'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\Testing resumes\\Image_74.jpg'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\Consultant resumes\\Image_86.jpg'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\data science resumes\\Image_83.jpg'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Accountant\\17.png'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\DevOps Engineer resumes\\Image_4.jpg'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Agricultural\\22_1.png'
- 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\Python Developer resumes\\Image_99.png']
-Similarity score = 0.21711457
+['C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Agricultural\\108.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Agricultural\\16_1.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\Agricultural resumes\\Image_66.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Accountant\\61.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\Blockchain resumes\\Image_71.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Accountant\\197_1.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Arts\\12.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\DevOps Engineer resumes\\Image_28.jpg'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\resume_database\\Advocate\\63.png'
+ 'C:\\Users\\Tanvi\\Desktop\\Resumes Datasets\\Bing_images\\Agricultural resumes\\Image_90.png']
+Similarity score = 7.8

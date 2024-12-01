@@ -121,12 +121,16 @@ print(similar_resumes)
 for resume in similar_resumes:
     print(resume)
 
+import math
 similarity_score = distance/cluster_radius[predicted_cluster]
+similarity_score = math.ceil((1-similarity_score[0])*100)/10
+
+
 
 print(similarity_score)
 
 with open("Similar resumes.txt", "w") as f:
-	f.write(str(similar_resumes) + "\nSimilarity score = " + str(similarity_score[0]))
+	f.write(str(similar_resumes) + "\nSimilarity score = " + str(similarity_score))
 
 # Visualization
 #plt.figure(figsize=(12, 8))
