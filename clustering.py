@@ -13,6 +13,8 @@ import torch.nn as nn
 import pandas as pd
 #from ResumeRater import generate_embeddings
 import pickle
+from sklearn.metrics.pairwise import euclidean_distances
+
 
 class shallow_CNN(nn.Module):
     def __init__(self):
@@ -30,16 +32,21 @@ class shallow_CNN(nn.Module):
 
         self.fc1 = nn.Sequential(
         	nn.Dropout(0.6),
-        	nn.Linear(13*13*128, 1024),
+        	nn.Linear(13*13*128, 512),
         	nn.ReLU())
 
         self.fc2 = nn.Sequential(
         	nn.Dropout(0.6),
-        	nn.Linear(1024, 512),
+        	nn.Linear(512, 128),
+        	nn.ReLU())
+
+        self.fc3 = nn.Sequential(
+        	nn.Dropout(0.6),
+        	nn.Linear(128, 32),
         	nn.ReLU())  
 
-        self.fc3= nn.Sequential(
-        	nn.Linear(512, 3))
+        self.fc4= nn.Sequential(
+        	nn.Linear(32, 3))
 
 
     def forward(self, x):
@@ -49,8 +56,11 @@ class shallow_CNN(nn.Module):
         x = self.fc1(x)
         x = self.fc2(x)
         x = self.fc3(x)
+        x = self.fc4(x)
         x = torch.sigmoid(x)
         return x
+
+
 
 state_dict = torch.load("CNN Models\\shallow_cnn.pth")
 model = shallow_CNN()
@@ -62,14 +72,14 @@ def hook_fn(module, input, output):
     intermediate_outputs[module] = output
 
 for name, layer in model.named_modules():
-    if name in ["fc2"]:  
+    if name in ["fc3"]:  
         layer.register_forward_hook(hook_fn)
 
 
-already_clustered = pd.read_csv("resume_clusters.csv")
+#already_clustered = pd.read_csv("resume_clusters.csv")
 
-already_clustered = already_clustered["File Name"]
-already_clustered = np.array(already_clustered)
+#already_clustered = already_clustered["File Name"]
+#already_clustered = np.array(already_clustered)
 
 #print(already_clustered)
 init_path = "C:\\Users\\Tanvi\\Desktop\\Resumes Datasets"
@@ -88,8 +98,8 @@ for f in folders:
             if count==5000:
                 break
             image_path = path + "\\" + j
-            if image_path in already_clustered:
-            	continue
+            #if image_path in already_clustered:
+            #	continue
             if image_path in tensors.keys():
                 continue
             image = Image.open(image_path)
@@ -136,12 +146,11 @@ for i in objects.keys():
 embeddings = [pt.embedding for pt in data_pts]
 embeddings = torch.stack(embeddings)
 
-
 print("Clustering..")
-#kmeans = KMeans(n_clusters=24, random_state=42, max_iter = 300)
-kmeans = joblib.load("kmeans_model.pkl")
-kmeans.partial_fit(new_data)
-#kmeans.fit(embeddings.numpy())
+kmeans = KMeans(n_clusters=24, random_state=42, max_iter = 300)
+#kmeans = joblib.load("kmeans_model.pkl")
+#kmeans.partial_fit(new_data)
+kmeans.fit(embeddings.numpy())
 
 
 with open("kmeans_model.pkl", "wb") as f:
@@ -153,7 +162,25 @@ results_df = pd.DataFrame(results)
 results_df.to_csv("resume_clusters.csv", index=False, mode = 'a')
  
 print("Cluster results saved to resume_clusters.csv!")
- 
+
+labels = kmeans.labels_
+centroids = kmeans.cluster_centers_
+
+max_distances = []
+for cluster_id in range(len(centroids)):
+    # Get points belonging to the current cluster
+    cluster_points = embeddings[labels == cluster_id]
+    
+    # Compute distances to the centroid
+    distances = np.linalg.norm(cluster_points - centroids[cluster_id], axis=1)
+    
+    # Store the maximum distance
+    max_distances.append(distances.max())
+
+
+with open("centroid_distances.pkl", "wb") as f:
+    pickle.dump(max_distances, f)
+    
 # Visualization using PCA
 pca = PCA(n_components=2)
 reduced_embeddings = pca.fit_transform(embeddings.numpy())

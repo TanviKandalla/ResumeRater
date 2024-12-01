@@ -21,16 +21,21 @@ class shallow_CNN(nn.Module):
 
         self.fc1 = nn.Sequential(
         	nn.Dropout(0.6),
-        	nn.Linear(13*13*128, 1024),
+        	nn.Linear(13*13*128, 512),
         	nn.ReLU())
 
         self.fc2 = nn.Sequential(
         	nn.Dropout(0.6),
-        	nn.Linear(1024, 512),
+        	nn.Linear(512, 128),
+        	nn.ReLU())
+
+        self.fc3 = nn.Sequential(
+        	nn.Dropout(0.6),
+        	nn.Linear(128, 32),
         	nn.ReLU())  
 
-        self.fc3= nn.Sequential(
-        	nn.Linear(512, 3))
+        self.fc4= nn.Sequential(
+        	nn.Linear(32, 3))
 
 
     def forward(self, x):
@@ -40,15 +45,15 @@ class shallow_CNN(nn.Module):
         x = self.fc1(x)
         x = self.fc2(x)
         x = self.fc3(x)
+        x = self.fc4(x)
         x = torch.sigmoid(x)
         return x
 
-
 def main():
-    X_train = torch.load("X_train_tensor.pt")
-    X_test = torch.load("X_test_tensor.pt")
+    X_train = torch.load("C:\\Users\\Tanvi\\Pictures\\OneDrive\\Pictures\\College\\NEU Semester 1\\Foundations of AI\\Final Project\\X_train_tensor.pt")
+    X_test = torch.load("C:\\Users\Tanvi\\Pictures\\OneDrive\\Pictures\\College\\NEU Semester 1\\Foundations of AI\\Final Project\\X_test_tensor.pt")
     
-    train_df = pd.read_csv("ResumeRater\\Preprocessed_data_CNN\\Train_normalized_CV.csv")
+    train_df = pd.read_csv("C:\\Users\\Tanvi\\Pictures\\OneDrive\\Pictures\\College\\NEU Semester 1\\Foundations of AI\\Final Project\\ResumeRater\\Preprocessed_data_CNN\\Train_normalized_CV.csv")
     train_df = train_df.drop("Unnamed: 0", axis = 1)
     
     for i in range(0, len(train_df)):
@@ -58,7 +63,7 @@ def main():
             if (train_df[j][i]) < 0.5:
                 train_df.loc[i, j] = 0.0
     
-    test_df = pd.read_csv("ResumeRater\\Preprocessed_data_CNN\\Test_normalized_CV.csv")
+    test_df = pd.read_csv("C:\\Users\\Tanvi\\Pictures\\OneDrive\\Pictures\\College\\NEU Semester 1\\Foundations of AI\\Final Project\\ResumeRater\\Preprocessed_data_CNN\\Test_normalized_CV.csv")
     test_df = test_df.drop("Unnamed: 0", axis = 1)
     
     train_labels = train_df.drop(["File name", "Avg Format score"], axis = 1)
