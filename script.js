@@ -1,19 +1,15 @@
-// Select the upload input and label elements
-const fileInput = document.getElementById("resumeUpload");
-const uploadLabel = document.querySelector(".upload-label span");
-
-// Add event listener for file selection
-fileInput.addEventListener("change", (event) => {
-    if (fileInput.files.length) {
-        const fileName = fileInput.files[0].name;
-        uploadLabel.textContent = fileName; // Update label to show the file name
-    } else {
-        uploadLabel.textContent = "Click to Upload PDF"; // Reset if no file is selected
-    }
+document.getElementById("resumeUpload").addEventListener("change", function () {
+    const fileName = this.files[0]?.name || "Click to Upload PDF";
+    document.querySelector(".upload-label span").textContent = fileName;
 });
 
-document.getElementById("scoreButton").addEventListener("click", () => {
+document.getElementById("scoreButton").addEventListener("click", async (event) => {
+    event.preventDefault();
+
+    const fileInput = document.getElementById("resumeUpload");
     const resultDiv = document.getElementById("result");
+    const classificationDiv = document.getElementById("classification-result");
+    const similarityDiv = document.getElementById("similarity-result"); // Correctly reference the similarity div
     const scoreSpan = document.getElementById("score");
 
     if (!fileInput.files.length) {
@@ -28,14 +24,53 @@ document.getElementById("scoreButton").addEventListener("click", () => {
         return;
     }
 
-    const score = calculateResumeScore(file.name);
-
+    // Generate a random score (simulate scoring logic)
+    const score = Math.floor(Math.random() * 30) + 70; // Score range: 70-100
     scoreSpan.textContent = score;
-    resultDiv.classList.remove("hidden");
-});
 
-function calculateResumeScore(fileName) {
-    const randomScore = Math.floor(Math.random() * 30) + 70; // Score range: 70-100
-    console.log(`Analyzing resume: ${fileName}`);
-    return randomScore;
-}
+    // Display the result container
+    resultDiv.classList.remove("hidden");
+
+    // Send the file to the backend API for job category classification
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/classify/", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Backend response:", data); // Debug log
+
+        if (data.error) {
+            classificationDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+            return;
+        }
+
+        // Display the predicted class index and category
+        classificationDiv.innerHTML = `
+            <h2>Similarity Score: ${data.similarity_score}</h2>
+            <p><strong>Predicted Class Index:</strong> ${data.index}</p>
+            <p><strong>Job Category:</strong> ${data.category}</p>
+        `;
+
+        // Display similar resumes
+        const similarResumesHTML = data.similar_resumes
+            .map(resume => `<li>${resume}</li>`)
+            .join("");
+        similarityDiv.innerHTML = `
+            <p><strong>Top 10 Similar Resumes:</strong></p>
+            <ul>${similarResumesHTML}</ul>
+        `;
+
+    } catch (error) {
+        console.error("Error occurred:", error); // Debug the error
+        classificationDiv.innerHTML = `<p style="color: red;">An error occurred while classifying the resume. Please try again.</p>`;
+    }
+});
