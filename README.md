@@ -179,12 +179,39 @@ Additional Notes
 
     -   Ensure `torch`, `transformers`, and other libraries are properly installed before running the scripts.
 
+    `http://127.0.0.1:8080`
 
+* * * * *
 
+Additional Notes
+----------------
 
+-   **Frontend Hosting**:
 
+    -   The frontend can be hosted on platforms like [Vercel](https://vercel.com/) or [Netlify](https://www.netlify.com/).
+    -   Backend (FastAPI) can be hosted on platforms like [Render](https://render.com/).
+-   **Folder Structure**:
 
+    arduino
 
+    Copy code
 
+    `project/
+    ├── data/
+    │   ├── Preprocessed_Data.csv
+    │   ├── test_normalized_cv.csv
+    │   ├── train_normalized_cv.csv
+    ├── bert_resume_model/
+    ├── CNN Models/
+    ├── app.py
+    ├── train_bert.py
+    ├── shallow_cnn.py
+    ├── run.py
+    ├── pad_data.py
+    ├── index.html
+    ├── script.js
+    ├── style.css`
 
+-   **Dependencies**:
 
+    -   Ensure `torch`, `transformers`, and other libraries are properly installed before running the scripts.
